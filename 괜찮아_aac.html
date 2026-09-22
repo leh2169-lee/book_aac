@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>그림책 독후활동 - 괜찮아</title>
+    <style>
+        body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background-color: #fff8e1; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        #instruction { font-size: 2.5rem; font-weight: bold; color: #e65100; background-color: #ffe0b2; padding: 15px 40px; border-radius: 20px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        .tab-container { display: flex; gap: 15px; margin-bottom: 20px; width: 100%; flex-wrap: wrap; justify-content: center; }
+        .tab-btn { font-size: 1.8rem; font-weight: bold; padding: 15px 25px; border: 4px solid #ffcc80; background-color: white; border-radius: 15px; cursor: pointer; }
+        .tab-btn.active { background-color: #f57c00; color: white; border-color: #e65100; }
+        
+        .aac-board { display: grid; gap: 20px; width: 98%; max-width: 1600px; flex-grow: 1; padding-bottom: 20px; }
+        
+        .aac-btn { background-color: white; border: 8px solid #ffb74d; border-radius: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; cursor: pointer; box-shadow: 0 8px 15px rgba(0,0,0,0.1); transition: 0.1s; }
+        .aac-btn:active { transform: scale(0.95); background-color: #fff3e0; border-color: #f57c00; }
+        
+        /* 기본 디자인은 남겨두고, 크기는 자바스크립트에서 상황에 맞게 조절합니다 */
+        .aac-btn img { width: 100%; object-fit: contain; pointer-events: none; }
+        .aac-btn span { font-weight: bold; color: #bf360c; pointer-events: none; text-align: center; word-break: keep-all; margin: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="instruction">선생님과 함께 책을 읽어요</div>
+    <div class="tab-container" id="tabs"></div>
+    <div class="aac-board" id="board"></div>
+
+    <script>
+        const aacData = {
+            "1주 차 (마법의 주문)": [
+                { img: "괜찮아.jpg", text: "괜찮아!", voice: "괜찮아!" }
+            ],
+            "2주 차 (동물 친구들)": [
+                { img: "개미.jpg", text: "개미", voice: "개미는 작아." },
+                { img: "고슴도치.jpg", text: "고슴도치", voice: "고슴도치는 가시가 많아." },
+                { img: "뱀.jpg", text: "뱀", voice: "뱀은 다리가 없어." },
+                { img: "타조.jpg", text: "타조", voice: "타조는 못날아." },
+                { img: "기린.jpg", text: "기린", voice: "기린은 목이 너무 길어." }
+            ],
+            "3주 차 (다 읽었어요)": [
+                { img: "끝.jpg", text: "책 읽기 끝!", voice: "책을 다 읽었어요. 정말 재밌어요!" }
+            ]
+        };
+
+        const tabsContainer = document.getElementById('tabs');
+        const boardContainer = document.getElementById('board');
+        const instructionText = document.getElementById('instruction');
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ko-KR'; 
+                utterance.rate = 0.8; 
+                utterance.pitch = 1.2; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function loadBoard(category) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText === category) btn.classList.add('active');
+            });
+
+            if(category === "1주 차 (마법의 주문)") {
+                instructionText.innerText = "다 함께 크게 외쳐요!";
+            } else if(category === "2주 차 (동물 친구들)") {
+                instructionText.innerText = "누가 누가 나왔을까?";
+            } else {
+                instructionText.innerText = "선생님, 이제 다 읽었어요!";
+            }
+
+            const items = aacData[category];
+            boardContainer.innerHTML = "";
+            
+            if (items.length === 1) {
+                boardContainer.style.gridTemplateColumns = "1fr"; 
+            } else if (items.length === 2 || items.length === 4) {
+                boardContainer.style.gridTemplateColumns = "repeat(2, 1fr)"; 
+            } else if (items.length === 3 || items.length === 5 || items.length === 6) {
+                boardContainer.style.gridTemplateColumns = "repeat(3, 1fr)"; 
+            } else {
+                boardContainer.style.gridTemplateColumns = "repeat(2, 1fr)"; 
+            }
+
+            items.forEach(item => {
+                const btn = document.createElement('div');
+                btn.className = 'aac-btn';
+                
+                // 🌟 화면에 띄울 이미지가 1개일 때와 여러 개일 때의 크기를 다르게 설정합니다. 🌟
+                let imgHeight = items.length === 1 ? "550px" : "300px"; // 1개면 사진을 550px로 초거대화
+                let fontSize = items.length === 1 ? "6.5rem" : "3.5rem"; // 1개면 글자도 6.5rem으로 초거대화
+                let marginBottom = items.length === 1 ? "30px" : "15px";
+
+                btn.innerHTML = `<img src="${item.img}" alt="${item.text}" style="height: ${imgHeight}; margin-bottom: ${marginBottom};" onerror="this.src='';"><span style="font-size: ${fontSize};">${item.text}</span>`;
+                
+                btn.onclick = () => {
+                    btn.style.backgroundColor = "#ffe0b2";
+                    setTimeout(() => { btn.style.backgroundColor = "white"; }, 300);
+                    speakText(item.voice);
+                };
+                boardContainer.appendChild(btn);
+            });
+        }
+
+        Object.keys(aacData).forEach((category, index) => {
+            const tab = document.createElement('button');
+            tab.className = 'tab-btn';
+            tab.innerText = category;
+            tab.onclick = () => loadBoard(category);
+            tabsContainer.appendChild(tab);
+            if(index === 0) loadBoard(category);
+        });
+    </script>
+</body>
+</html>
